@@ -2,11 +2,12 @@
 
 ## 1 часть
 
-Для запуска проекта нужно ввести в консоль: uvicorn main:app
+Для сборки проекта и запуска вводим в консоль: *docker-compose up -d*
 
 .env должен быть примерно таким:
 
-SECRET_KEY=*ваш ключ*  
-USER_DB=*ваш юзер*  
-PASSWORD_DB=*ваш пароль*  
-NAME_DB=*имя вашей db*
+POSTGRES_USER=**your_user**  
+POSTGRES_PASSWORD=**your_pwd**  
+POSTGRES_DB=**your_db_name**   
+POSTGRES_HOST=db  
+POSTGRES_PORT=**your_db_port**   
