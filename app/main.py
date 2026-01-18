@@ -60,7 +60,7 @@ async def search_advertisement(
             conditions.append(models.Advertisement.price >= price_min)
 
         if price_max:
-            conditions.append(models.Advertisement.price <= price_min)
+            conditions.append(models.Advertisement.price <= price_max)
 
         if conditions:
             if search_mode.upper() == 'OR':
@@ -72,8 +72,8 @@ async def search_advertisement(
             query = query.where(condition)
             count_query = count_query.where(condition)
 
-        query = query.order_by(models.Advertisement.date.desc())
-        query = query.offset(offset).limit(limit)
+    query = query.order_by(models.Advertisement.date.desc())
+    query = query.offset(offset).limit(limit)
 
     advs = await session.scalars(query)
     advs_list = list(advs)
@@ -134,5 +134,6 @@ async def update_advertisement(adv_id: int, adv_data: UpdateAdvertisement, sessi
 @app.delete('/advertisements/{adv_id}', status_code=204)
 async def delete_advertisement(adv_id: int, session: SessionDependency):
     adv_orm_obj = await crud.get_item_by_id(session, models.Advertisement, adv_id)
+    if not adv_orm_obj:
+        raise HTTPException(status_code=404, detail='Объявление не найдено')
     await crud.delete_item(session, adv_orm_obj)
-    return {"status": "success"}
