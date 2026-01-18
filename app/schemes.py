@@ -1,13 +1,9 @@
-from typing import Optional, Literal
-from pydantic import BaseModel, Field
+from typing import Optional
+from pydantic import BaseModel, Field, field_validator
 
 
 class IdResponse(BaseModel):
     id: int
-
-
-class SuccessResponse(BaseModel):
-    status: Literal["success"]
 
 
 class PaginationInfo(BaseModel):
@@ -50,7 +46,14 @@ class CreateAdvertisementResponse(IdResponse):
 class UpdateAdvertisement(BaseModel):
     title: Optional[str] = Field(max_length=50)
     description: Optional[str] = None
-    price: Optional[float] = Field(None, gt=0)
+    price: Optional[float] = None
+
+    @field_validator('price')
+    @classmethod
+    def validate_price(cls, v: Optional[float]) -> Optional[float]:
+        if v is not None and v <= 0:
+            raise ValueError('Цена должна быть положительной')
+        return v
 
 
 class GetAdvertisement(BaseModel):
@@ -66,5 +69,5 @@ class SearchAdvResponse(BaseModel):
     pagination: PaginationInfo
 
 
-class DeleteResponse(SuccessResponse):
-    pass
+class DeleteResponse(BaseModel):
+    None
