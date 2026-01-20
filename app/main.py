@@ -23,7 +23,7 @@ async def create_advertisement(adv: CreateAdvertisementRequest, session: Session
 
 
 @app.get('/advertisements/{adv_id}')
-async def search_advertisement(adv_id: int, session: SessionDependency):
+async def get_advertisement(adv_id: int, session: SessionDependency):
     adv_orm_obj = await crud.get_item_by_id(session, models.Advertisement, adv_id)
     return adv_orm_obj
 
