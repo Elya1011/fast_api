@@ -1,25 +1,13 @@
-from passlib.context import CryptContext
-import asyncio
+import bcrypt
 
-
-pwd_context = CryptContext(
-    schemes=['bcrypt'],
-    bcrypt__rounds=12,
-    deprecated='auto'
-)
 
 async def hash_password(password: str) -> str:
-    loop = asyncio.get_event_loop()
-    return await loop.run_in_executor(None, pwd_context.hash, password)
+    password = password.encode()
+    password_hashed = bcrypt.hashpw(password, bcrypt.gensalt())
+    return password_hashed.decode()
 
-async def verify_password(plain_password: str, hashed_password: str) -> bool:
-    if not hashed_password:
-        return None
 
-    loop = asyncio.get_event_loop()
-    return await loop.run_in_executor(
-        None,
-        pwd_context.verify,
-        plain_password,
-        hashed_password
-    )
+async def check_password(password: str, password_hashed: str) -> bool:
+    password = password.encode()
+    password_hashed = password_hashed.encode()
+    return bcrypt.checkpw(password, password_hashed)
