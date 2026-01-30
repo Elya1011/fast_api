@@ -1,8 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from lifespan import lifespan
-from dependency import SessionDependency
+from dependency import SessionDependency, TokenDependency
 from schemes import CreateAdvertisementRequest, SearchAdvResponse, UpdateAdvertisement, \
-    GetAdvertisement
+    GetAdvertisement, CreateUserRequest, CreateUserResponse
 import models, crud
 from sqlalchemy import select, func, or_, and_
 from typing import Optional
@@ -14,8 +14,24 @@ app = FastAPI(
 )
 
 
+@app.post('/users', status_code=201)
+async def create_user(user: CreateUserRequest, session: SessionDependency):
+    query = select(models.User).where(models.User.email == user.email)
+    result = await session.scalars(query)
+    if result.first():
+        raise HTTPException(status_code=400, detail='Пользователь с таким email уже существует')
+
+    user_orm_obj = models.User(
+        first_name=user.first_name,
+        last_name=user.last_name,
+        email=user.email
+    )
+    await user_orm_obj.set_password(user.password)
+    await crud.add_item(session, user_orm_obj)
+
+
 @app.post('/advertisements', status_code=201)
-async def create_advertisement(adv: CreateAdvertisementRequest, session: SessionDependency):
+async def create_advertisement(adv: CreateAdvertisementRequest, session: SessionDependency, token: TokenDependency):
     adv_dict = adv.model_dump(exclude_unset=True)
     adv_orm_obj = models.Advertisement(**adv_dict)
     await crud.add_item(session, adv_orm_obj)
