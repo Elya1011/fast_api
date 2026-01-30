@@ -1,5 +1,6 @@
 from typing import Optional
 from pydantic import BaseModel, Field, field_validator
+import uuid
 
 
 class IdResponse(BaseModel):
@@ -72,3 +73,23 @@ class SearchAdvResponse(BaseModel):
 
 class DeleteResponse(BaseModel):
     None
+
+
+class BaseUserRequest(BaseModel):
+    first_name: str
+    last_name: str
+    email: str
+    password: str
+
+
+class CreateUserRequest(BaseUserRequest):
+    pass
+
+
+class CreateUserResponse(IdResponse):
+    pass
+
+
+class LoginResponse(BaseModel):
+    email: str
+    token: uuid.UUID
