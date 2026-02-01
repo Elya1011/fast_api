@@ -4,6 +4,8 @@ from sqlalchemy import String, Integer, Text, DECIMAL, DateTime, func, ForeignKe
 import datetime, config, uuid
 from typing import Type
 from security import check_password, hash_password
+from custom_types import ROLE
+
 
 engine = create_async_engine(config.PG_DSN)
 Session = async_sessionmaker(bind=engine, expire_on_commit=False)
@@ -21,14 +23,22 @@ class User(Base):
     first_name: Mapped[str] = mapped_column(String(20), nullable=False)
     last_name: Mapped[str] = mapped_column(String(20), nullable=False)
     email: Mapped[str] = mapped_column(String(150), unique=True, nullable=False)
+    role: Mapped[ROLE] = mapped_column(String, default="user")
     password_hash: Mapped[str] = mapped_column(String(600))
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now())
+    updated_at: Mapped[datetime.datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
     advertisement: Mapped[list['Advertisement']] = relationship(
         'Advertisement',
         back_populates='user',
         cascade='all, delete-orphan',
         lazy='selectin'
     )
-    tokens: Mapped[list['Token']] = relationship('Token', lazy="joined", back_populates="user")
+    tokens: Mapped[list['Token']] = relationship(
+        'Token',
+        lazy="joined",
+        back_populates="user",
+        cascade='all, delete-orphan'
+    )
 
     async def set_password(self, password: str):
         self.password_hash = await hash_password(password)
@@ -42,7 +52,11 @@ class User(Base):
             'id': self.id,
             'first_name': self.first_name,
             'last_name': self.last_name,
-            'email': self.email
+            'email': self.email,
+            'created_at': self.created_at,
+            'updated_at': self.updated_at,
+            'advertisement': self.advertisement,
+            'tokens': self.tokens
         }
 
 
@@ -75,7 +89,7 @@ class Advertisement(Base):
             'description': self.description,
             'date': self.date,
             'price': self.price,
-            'user': self.user
+            'user': self.user_id
         }
 
 
