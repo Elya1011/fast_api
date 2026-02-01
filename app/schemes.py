@@ -47,7 +47,6 @@ class UpdateAdvertisement(BaseModel):
     title: Optional[str] = Field(max_length=50)
     description: Optional[str] = None
     price: Optional[float] = None
-    user: Optional[str] = None
 
     @field_validator('price')
     @classmethod

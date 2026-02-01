@@ -55,8 +55,6 @@ class User(Base):
             'email': self.email,
             'created_at': self.created_at,
             'updated_at': self.updated_at,
-            'advertisement': self.advertisement,
-            'tokens': self.tokens
         }
 
 

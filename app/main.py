@@ -173,13 +173,16 @@ async def search_advertisement(
 
 
 @app.patch('/advertisements/{adv_id}', response_model=GetAdvertisement) # add token
-async def update_advertisement(adv_id: int, adv_data: UpdateAdvertisement, session: SessionDependency):
+async def update_advertisement(adv_id: int, adv_data: UpdateAdvertisement, session: SessionDependency, token: TokenDependency):
     query = select(models.Advertisement).where(models.Advertisement.id == adv_id)
     result = await session.scalars(query)
     adv = result.first()
 
     if not adv:
         raise HTTPException(status_code=404, detail='Объявление не найдено')
+
+    if token.user.role != 'admin' and token.user_id != adv.user_id:
+        raise HTTPException(403, 'You can change only your own advertisements')
 
     update_data = adv_data.model_dump(exclude_unset=True)
 
@@ -189,7 +192,7 @@ async def update_advertisement(adv_id: int, adv_data: UpdateAdvertisement, sessi
             'title': adv.title,
             'description': adv.description,
             'price': float(adv.price) if adv.price else 0.0,
-            'user': adv.user
+            'user': str(adv.user_id)
         }
 
     for field, value in update_data.items():
@@ -208,13 +211,15 @@ async def update_advertisement(adv_id: int, adv_data: UpdateAdvertisement, sessi
             'title': adv.title,
             'description': adv.description,
             'price': float(adv.price) if adv.price else 0.0,
-            'user': adv.user
+            'user': str(adv.user_id)
     }
 
 
-@app.delete('/advertisements/{adv_id}', status_code=204) # add token
-async def delete_advertisement(adv_id: int, session: SessionDependency):
+@app.delete('/advertisements/{adv_id}', status_code=204)
+async def delete_advertisement(adv_id: int, session: SessionDependency, token: TokenDependency):
     adv_orm_obj = await crud.get_item_by_id(session, models.Advertisement, adv_id)
     if not adv_orm_obj:
         raise HTTPException(status_code=404, detail='Объявление не найдено')
+    if token.user.role != 'admin' and token.user_id != adv_orm_obj.user_id:
+        raise HTTPException(403, 'You can only delete your own advertisements')
     await crud.delete_item(session, adv_orm_obj)
