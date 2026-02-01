@@ -37,7 +37,6 @@ class CreateAdvertisementRequest(BaseModel):
     title: str = Field(min_length=1, max_length=50, description='максимум 50 символов')
     description: str
     price: float = Field(gt=0, description='цена должна быть больше 0')
-    user: str
 
 
 class CreateAdvertisementResponse(IdResponse):
@@ -82,6 +81,16 @@ class BaseUserRequest(BaseModel):
     password: str
 
 
+class UpdateUser(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    email: Optional[str] = None
+    password: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
 class CreateUserRequest(BaseUserRequest):
     pass
 
@@ -89,7 +98,10 @@ class CreateUserRequest(BaseUserRequest):
 class CreateUserResponse(IdResponse):
     pass
 
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
 
 class LoginResponse(BaseModel):
-    email: str
     token: uuid.UUID
