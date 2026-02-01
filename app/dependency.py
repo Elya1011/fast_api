@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 import uuid, datetime
 from config import TOKEN_TTL_SEC
+import models
 
 
 async def get_session() -> AsyncSession:
@@ -30,3 +31,14 @@ async def get_token(
 
 
 TokenDependency = Annotated[Token, Depends(get_token)]
+
+
+async def get_current_user(token: TokenDependency, session: SessionDependency) -> models.User:
+    user_id = token.user_id
+    user = await session.get(models.User, user_id)
+    if user is None:
+        raise HTTPException(status_code=401, detail='user not found')
+    return user
+
+
+CurrentUserDependency = Annotated[models.User, Depends(get_current_user)]
